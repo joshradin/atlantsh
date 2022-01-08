@@ -1,0 +1,2 @@
+[env]
+ATLSH_HOME = { value="target/debug", relative=true}
