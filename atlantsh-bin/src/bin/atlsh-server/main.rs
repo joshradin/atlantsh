@@ -1,7 +1,8 @@
-use atlantsh_bin::shared::ServerState;
+use atlantsh::shared::server::ServerState;
+use atlantsh_interface::server::{Request, Response};
 use clap::Parser;
 use lazy_static::lazy_static;
-use std::io::{stdin, BufRead, BufReader};
+use std::io::{stdin, stdout, BufRead, BufReader, Write};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -27,15 +28,23 @@ fn main() {
 
     println!("{}", state_as_json);
 
-    let mut reader = BufReader::new(stdin());
-    loop {
-        let mut line = String::new();
-        reader.read_line(&mut line).unwrap();
-        if line.trim() == "quit" {
+    let mut de = serde_json::Deserializer::from_reader(stdin());
+    let mut de_iterator = de.into_iter::<Request>();
+    while let Some(Ok(request)) = de_iterator.next() {
+        // eprintln!("Received command: {:#?}", request);
+
+        let line = request.command;
+
+        if line == "quit" {
             break;
+        } else if line == "name" {
+            let response = Response::from("josh!\nradin!");
+            // eprintln!("Created response: {:#?}", response);
+            serde_json::to_writer(stdout(), &response);
+            stdout().flush();
         } else {
             // eprintln!("Didn't receive a quit")
         }
     }
-    eprintln!("Exiting server!")
+    // eprintln!("Exiting server!")
 }

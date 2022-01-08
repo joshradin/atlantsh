@@ -28,7 +28,7 @@ pub fn as_executable(program: &str) -> String {
 ///
 /// returns: impl IntoIterator<Item=PathBuf, IntoIter=<unknown>>
 ///
-fn run_paths(working_dir: Option<&Path>) -> impl IntoIterator<Item = PathBuf> {
+pub fn run_paths(working_dir: Option<&Path>) -> impl IntoIterator<Item = PathBuf> {
     let mut output = vec![];
     if let Some(working_dir) = working_dir {
         output.push(working_dir.to_path_buf());
@@ -51,10 +51,9 @@ pub fn run_command<'a>(
     command_args: &[String],
     working_dir: Option<PathBuf>,
 ) -> Result<i32, String> {
-    run_command_status(command, command_args, working_dir)
-        .map(|s| s.code().unwrap())
+    run_command_status(command, command_args, working_dir).map(|s| s.code().unwrap())
 }
-fn program_in_path(paths: impl IntoIterator<Item = PathBuf>, program: &str) -> Option<PathBuf> {
+pub fn program_in_path(paths: impl IntoIterator<Item = PathBuf>, program: &str) -> Option<PathBuf> {
     for path in paths {
         let mut program_path = path;
         program_path.push(program);
@@ -68,7 +67,6 @@ fn program_in_path(paths: impl IntoIterator<Item = PathBuf>, program: &str) -> O
     }
     None
 }
-
 
 /// Runs an ATLSH program
 pub fn run_command_status<'a>(
@@ -90,13 +88,9 @@ pub fn run_command_status<'a>(
         cmd.current_dir(dir);
     }
 
-    let mut result = cmd
-        .spawn()
-        .map_err(|e| e.to_string())?;
+    let mut result = cmd.spawn().map_err(|e| e.to_string())?;
 
-    result
-        .wait()
-        .map_err(|e| e.to_string())
+    result.wait().map_err(|e| e.to_string())
 }
 
 /// Runs an ATLSH program
@@ -119,13 +113,9 @@ pub fn run_command_output<'a>(
         cmd.current_dir(dir);
     }
 
-    let result = cmd
-        .spawn()
-        .map_err(|e| e.to_string())?;
+    let result = cmd.spawn().map_err(|e| e.to_string())?;
 
-    result
-        .wait_with_output()
-        .map_err(|e| e.to_string())
+    result.wait_with_output().map_err(|e| e.to_string())
 }
 
 pub fn launch_command<'a>(
@@ -143,7 +133,6 @@ pub fn launch_command<'a>(
 
     let mut cmd = Command::new(command);
 
-
     cmd.stdin(Stdio::piped());
     cmd.stdout(Stdio::piped());
 
@@ -152,9 +141,7 @@ pub fn launch_command<'a>(
         cmd.current_dir(dir);
     }
 
-    let mut child = cmd
-        .spawn()
-        .map_err(|e| e.to_string())?;
+    let mut child = cmd.spawn().map_err(|e| e.to_string())?;
 
     let stdin = child.stdin.take().unwrap();
     let stdout = child.stdout.take().unwrap();

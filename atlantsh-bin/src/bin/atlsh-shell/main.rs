@@ -1,11 +1,11 @@
-use atlantsh_bin::launch_command;
-use atlantsh_bin::shared::ServerState;
+use atlantsh::launch_command;
+use atlantsh::shared::server::{ServerInstance, ServerState};
+use atlantsh_interface::server::Request;
 use clap::Parser;
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 
 mod job;
-mod server_instance;
 mod shell;
 
 #[derive(Parser)]
@@ -15,7 +15,7 @@ struct Args {
     dir: Option<String>,
 }
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let args: Args = Args::parse();
 
     let working_dir = args
@@ -44,7 +44,13 @@ fn main() {
 
     println!("received server state: {:#?}", server_state);
 
-    writeln!(server_in, "quit").unwrap();
+    let mut instance = ServerInstance::new(server_state, server_in, buffered_reader);
+
+    let request = Request::from("name");
+    let name = instance.send_message(request)?;
+    println!("name: {:?}", name);
+
+    Ok(())
 }
 
 fn cleanup() {}

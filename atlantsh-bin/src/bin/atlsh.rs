@@ -1,7 +1,7 @@
-use atlantsh_bin::{run_command};
+use atlantsh::run_command;
 use clap::Parser;
 use std::path::PathBuf;
-use std::process::{exit};
+use std::process::exit;
 
 #[derive(Parser)]
 #[clap(about, version, author)]
@@ -23,14 +23,9 @@ fn main() {
     let command = &*args.command;
     let command_args = args.command_args.as_slice();
 
-    let working_dir =
-    match args.dir {
-        None => {
-           std::env::current_dir().ok()
-        }
-        Some(s) => {
-            Some(PathBuf::from(s))
-        }
+    let working_dir = match args.dir {
+        None => std::env::current_dir().ok(),
+        Some(s) => Some(PathBuf::from(s)),
     };
 
     match run_command(command, command_args, working_dir) {
@@ -41,5 +36,3 @@ fn main() {
         }
     }
 }
-
-
