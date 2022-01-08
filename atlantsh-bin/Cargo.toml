@@ -1,5 +1,6 @@
 [package]
 name = "atlantsh-bin"
+authors = ["Joshua Radin <jradin16@gmail.com>"]
 version = "0.1.0"
 edition = "2021"
 default-run = "atlsh"
@@ -9,9 +10,13 @@ default-run = "atlsh"
 name = "atlsh"
 
 [[bin]]
+name = "atlsh-shell"
+
+[[bin]]
 name = "atlsh-command"
 
 [[bin]]
 name = "atlsh-server"
 
 [dependencies]
+clap = { version = "3.0.5", features=["derive"] }
