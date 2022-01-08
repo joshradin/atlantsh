@@ -1,0 +1,17 @@
+[package]
+name = "atlantsh-bin"
+version = "0.1.0"
+edition = "2021"
+default-run = "atlsh"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "atlsh"
+
+[[bin]]
+name = "atlsh-command"
+
+[[bin]]
+name = "atlsh-server"
+
+[dependencies]
