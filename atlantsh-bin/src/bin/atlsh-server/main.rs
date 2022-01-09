@@ -1,7 +1,6 @@
 use atlantsh::shared::server::ServerState;
 use atlantsh_interface::server::{Request, Response};
 use clap::Parser;
-use lazy_static::lazy_static;
 use std::io::{stdin, stdout, BufRead, BufReader, Write};
 use std::path::PathBuf;
 

@@ -1,6 +1,7 @@
 use serde_json::Value;
 use std::collections::HashMap;
 use std::io;
+use std::marker::PhantomData;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -12,27 +13,25 @@ pub struct AtlantshServer<In: io::Write, Out: io::Read> {
     working_dir: PathBuf,
 }
 
-pub struct AtlantshServerLock<'l, In: io::Write, Out: io::Read> {
+pub struct AtlantshServerLock<'l> {
     path: PathBuf,
-    parent_server: &'l mut AtlantshServer<In, Out>
+    _data: PhantomData<&'l ()>,
 }
 
-impl<'l, In: io::Write, Out: io::Read> AtlantshServerLock<'l, In, Out> {
+impl<'l> AtlantshServerLock<'l> {
     fn lock_file_path(&self) -> PathBuf {
         _lock_file_path(self.path.as_path())
     }
-
-
 }
 
 fn _lock_file_path(dir: &Path) -> PathBuf {
     PathBuf::from_iter(&[dir, LOCK_FILE.as_ref()])
 }
 
-impl<'l, In: io::Write, Out: io::Read> Drop for AtlantshServerLock<'l, In, Out> {
+impl<'l> Drop for AtlantshServerLock<'l> {
     fn drop(&mut self) {
         let file = self.lock_file_path();
-        std::fs::remove_file(file);
+        drop(std::fs::remove_file(file));
     }
 }
 
@@ -41,30 +40,33 @@ impl<In: io::Write, Out: io::Read> AtlantshServer<In, Out> {
         todo!()
     }
 
-    pub fn try_lock(&mut self) -> Option<AtlantshServerLock<In, Out>> {
+    pub fn try_lock(&mut self) -> Result<AtlantshServerLock, &mut Self>
+    {
         let path = _lock_file_path(self.working_dir.as_path());
         if std::fs::metadata(path).is_ok() {
-            None
+            Err(self)
         } else {
-            Some(AtlantshServerLock {
+            Ok(AtlantshServerLock {
                 path: self.working_dir.clone(),
-                parent_server: self
+                _data: PhantomData::default()
             })
         }
     }
 
     /// Panics if the timeout duration is reached, but user can assume that the lock will be gotten
     /// if this function succeeds
-    pub fn lock(&mut self, timeout: Duration) -> AtlantshServerLock<'_, In, Out> {
+    pub fn lock(&mut self, timeout: Duration) -> AtlantshServerLock {
         let start_time = Instant::now();
+        let mut server = self;
         loop {
-            match self.try_lock() {
-                None => {
+            match server.try_lock() {
+                Err(s) => {
                     if start_time.elapsed() >= timeout {
                         panic!("Timeout duration reached")
                     }
+                    server = s;
                 }
-                Some(out) => {
+                Ok(out) => {
                     return out;
                 }
             }

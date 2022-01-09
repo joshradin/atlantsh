@@ -1,15 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 use anyhow::{anyhow, Result};
-use serde_json::Value;
 
 use atlantsh_interface::server::{Request, Response};
-use std::collections::HashMap;
-use std::error::Error;
-use std::io::{BufReader, ErrorKind, Read, Write};
+use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::time::UNIX_EPOCH;
-use std::{io, process};
+use std::{process};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ServerState {
@@ -39,7 +36,7 @@ pub struct ServerInstance<In: Write, Out: Read> {
 
 impl<In: Write, Out: Read> Drop for ServerInstance<In, Out> {
     fn drop(&mut self) {
-        self._quit();
+        drop(self._quit());
     }
 }
 
@@ -58,8 +55,8 @@ impl<In: Write, Out: Read> ServerInstance<In, Out> {
     pub fn send_message(&mut self, msg: impl Into<Request>) -> Result<Response> {
         let message = msg.into();
 
-        serde_json::to_writer(&mut self.server_stdin, &message);
-        self.server_stdin.flush();
+        serde_json::to_writer(&mut self.server_stdin, &message)?;
+        self.server_stdin.flush()?;
         let ref mut reader = self.server_output;
 
         let de = serde_json::Deserializer::from_reader(reader);

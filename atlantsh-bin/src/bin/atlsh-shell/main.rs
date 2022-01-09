@@ -49,6 +49,8 @@ fn main() -> anyhow::Result<()> {
     let request = Request::from("name");
     let name = instance.send_message(request)?;
     println!("name: {:?}", name);
+    let name = instance.send_message("name")?;
+    println!("name: {:?}", name);
 
     Ok(())
 }
